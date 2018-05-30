@@ -10,11 +10,11 @@ export JENKINS_PASSWORD KUBERNETES_SERVICE_HOST KUBERNETES_SERVICE_PORT
 export ITEM_ROOTDIR="\${ITEM_ROOTDIR}" # Preserve this variable Jenkins has in config.xml
 
 # Generate passwd file based on current uid
-function generate_passwd_file() {
+generate_passwd_file() {
   USER_ID=$(id -u)
   GROUP_ID=$(id -g)
 
-  if [ x"$USER_ID" != x"0" -a x"$USER_ID" != x"997" ]; then
+  if [ x"$USER_ID" != x"0" ] && [ x"$USER_ID" != x"997" ]; then
 
     echo "default:x:${USER_ID}:${GROUP_ID}:Default Application User:${HOME}:/sbin/nologin" >> /etc/passwd
 
@@ -22,13 +22,13 @@ function generate_passwd_file() {
 }
 
 # Takes a password and an optional salt value, outputs the hashed password.
-function obfuscate_password {
-    local password="$1"
-    local salt="$2"
-    local acegi_security_path=`find /tmp/war/WEB-INF/lib/ -name acegi-security-*.jar`
-    local commons_codec_path=`find /tmp/war/WEB-INF/lib/ -name commons-codec-*.jar`
+obfuscate_password() {
+    password="$1"
+    salt="$2"
+    acegi_security_path=$(find /tmp/war/WEB-INF/lib/ -name 'acegi-security-*.jar')
+    commons_codec_path=$(find /tmp/war/WEB-INF/lib/ -name 'commons-codec-*.jar')
 
     # source for password-encoder.jar is inside the jar.
     # acegi-security-1.0.7.jar is inside the jenkins war.
-    java -classpath "${acegi_security_path}:${commons_codec_path}:/opt/openshift/password-encoder.jar" com.redhat.openshift.PasswordEncoder $password $salt
+    java -classpath "${acegi_security_path}:${commons_codec_path}:/opt/openshift/password-encoder.jar" com.redhat.openshift.PasswordEncoder "$password" "$salt"
 }
